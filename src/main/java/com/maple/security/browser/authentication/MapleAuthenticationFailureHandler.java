@@ -29,12 +29,13 @@ public class MapleAuthenticationFailureHandler extends SimpleUrlAuthenticationFa
 	@Override
 	public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
 			AuthenticationException exception) throws IOException, ServletException {
-		log.info("登录失败，失败信息：" + JSONObject.toJSONString(exception, true));
+		
+		log.info("登录失败，失败信息：" + exception.getMessage());
 		
 		if(securityProperties.getBrowser().getLoginType() == LoginType.JSON) {
 			response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
 			response.setContentType("application/json;charset=UTF-8");
-			response.getWriter().write(JSONObject.toJSONString(exception,true));
+			response.getWriter().write(exception.getMessage());
 		}else {
 			super.onAuthenticationFailure(request, response, exception);
 		}
