@@ -7,6 +7,7 @@ import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -19,6 +20,9 @@ import org.springframework.security.web.authentication.rememberme.JdbcTokenRepos
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
 
 import com.maple.security.browser.authentication.MapleAuthenticationSuccessHandler;
+import com.maple.security.core.authentication.mobile.SmsAuthenticationFilter;
+import com.maple.security.core.authentication.mobile.SmsAuthenticationProvider;
+import com.maple.security.core.authentication.mobile.SmsAuthenticationSecurityConfig;
 import com.maple.security.core.properties.SecurityConstants;
 import com.maple.security.core.properties.SecurityProperties;
 import com.maple.security.core.validate.code.ValidateCodeFilter;
@@ -62,6 +66,9 @@ public class BrowserSecurityConfig extends WebSecurityConfigurerAdapter {
 	@Autowired
 	private UserDetailsService userDetailsService;
 	
+	@Autowired
+	private SmsAuthenticationSecurityConfig smsAuthenticationSecurityConfig;
+	
 	/**
 	 * 声明加密方法
 	 * @return
@@ -86,7 +93,7 @@ public class BrowserSecurityConfig extends WebSecurityConfigurerAdapter {
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
-
+		
 		http.addFilterBefore(validateCodeFilter, UsernamePasswordAuthenticationFilter.class)
 			.formLogin()
 				.loginPage(SecurityConstants.DEFAULT_UNAUTHENTICATION_URL)
@@ -110,7 +117,9 @@ public class BrowserSecurityConfig extends WebSecurityConfigurerAdapter {
 				.authenticated()
 			.and()
 				.csrf()
-				.disable();
+				.disable()
+			.apply(smsAuthenticationSecurityConfig);
+		
 	}
 
 }
