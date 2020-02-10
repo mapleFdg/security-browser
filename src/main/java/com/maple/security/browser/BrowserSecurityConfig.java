@@ -1,34 +1,31 @@
 package com.maple.security.browser;
 
-import java.sql.Date;
-
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.authentication.AuthenticationFailureHandler;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
 
-import com.maple.security.browser.authentication.MapleAuthenticationSuccessHandler;
-import com.maple.security.core.authentication.mobile.SmsAuthenticationFilter;
-import com.maple.security.core.authentication.mobile.SmsAuthenticationProvider;
+import com.maple.security.core.authentication.AbstractChannelSecurityConfig;
 import com.maple.security.core.authentication.mobile.SmsAuthenticationSecurityConfig;
 import com.maple.security.core.properties.SecurityConstants;
 import com.maple.security.core.properties.SecurityProperties;
-import com.maple.security.core.validate.code.ValidateCodeFilter;
+import com.maple.security.core.validate.code.ValidateCodeSecurityConfig;
 
+/**
+ * browser 配置类
+ * 
+ * @author hzc
+ *
+ */
 @Configuration
-public class BrowserSecurityConfig extends WebSecurityConfigurerAdapter {
+public class BrowserSecurityConfig extends AbstractChannelSecurityConfig {
 	
 	/**
 	 * 系统配置
@@ -37,22 +34,10 @@ public class BrowserSecurityConfig extends WebSecurityConfigurerAdapter {
 	private SecurityProperties securityProperties;
 	
 	/**
-	 * 验证成功处理器
+	 * 验证码配置信息
 	 */
 	@Autowired
-	private AuthenticationSuccessHandler mapleAuthenticationSuccessHandler;
-	
-	/**
-	 * 验证失败处理器
-	 */
-	@Autowired
-	private AuthenticationFailureHandler mapleAuthenticationFailureHandler;
-	
-	/**
-	 * 验证码校验过滤器
-	 */
-	@Autowired
-	private ValidateCodeFilter validateCodeFilter;
+	private ValidateCodeSecurityConfig validateCodeSecurityConfig;
 	
 	/**
 	 * 数据源
@@ -94,32 +79,29 @@ public class BrowserSecurityConfig extends WebSecurityConfigurerAdapter {
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		
-		http.addFilterBefore(validateCodeFilter, UsernamePasswordAuthenticationFilter.class)
-			.formLogin()
-				.loginPage(SecurityConstants.DEFAULT_UNAUTHENTICATION_URL)
-				.loginProcessingUrl(SecurityConstants.DEFAULT_SIGN_IN_PROCESSING_URL_FORM)
-				.successHandler(mapleAuthenticationSuccessHandler)
-				.failureHandler(mapleAuthenticationFailureHandler)
+		applyPasswordAuthenticationConfig(http);
+		
+		http.apply(validateCodeSecurityConfig) // 加载校验码配置信息
 			.and()
-				.rememberMe()
+				.apply(smsAuthenticationSecurityConfig)  //配置短信登录的的配置
+			.and()
+				.rememberMe() // 设置rememberMe配置
 					.tokenRepository(getPersistentTokenRepository())
 					.tokenValiditySeconds(securityProperties.getBrowser().getRememberMeSeconds())
 					.userDetailsService(userDetailsService)
 			.and()
-				.authorizeRequests()
+				.authorizeRequests() // 配置拦截的请求
 				.antMatchers(
 						securityProperties.getBrowser().getLoginPage(), 
 						SecurityConstants.DEFAULT_UNAUTHENTICATION_URL,
 						SecurityConstants.DEFAULT_VALIDATE_CODE_URL_PREFIX + "/*"
-					)
+					) // 排除掉哪些请求
 				.permitAll()
 				.anyRequest()
 				.authenticated()
 			.and()
-				.csrf()
-				.disable()
-			.apply(smsAuthenticationSecurityConfig);
-		
+				.csrf() // csrf防护
+				.disable();
 	}
 
 }

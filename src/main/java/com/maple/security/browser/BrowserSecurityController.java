@@ -58,6 +58,7 @@ public class BrowserSecurityController {
 
 				return null;
 			} else {
+				log.info("请求为api的请求，返回JSON");
 				return new SimpleResponse("访问的服务需要身份认证，请引导用户到登录页");
 			}
 		}
