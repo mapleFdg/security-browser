@@ -11,6 +11,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
+import org.springframework.social.security.SpringSocialConfigurer;
 
 import com.maple.security.core.authentication.AbstractChannelSecurityConfig;
 import com.maple.security.core.authentication.mobile.SmsAuthenticationSecurityConfig;
@@ -51,15 +52,24 @@ public class BrowserSecurityConfig extends AbstractChannelSecurityConfig {
 	@Autowired
 	private UserDetailsService userDetailsService;
 	
+	/**
+	 * 手机短信验证码配置类
+	 */
 	@Autowired
 	private SmsAuthenticationSecurityConfig smsAuthenticationSecurityConfig;
+	
+	/**
+	 * 第三方登录配置类
+	 */
+	@Autowired
+	private SpringSocialConfigurer mapleSocialSecurityConfig;
 	
 	/**
 	 * 声明加密方法
 	 * @return
 	 */
 	@Bean
-	public PasswordEncoder getPasswordEncod() {
+	public PasswordEncoder passwordEncod() {
 		return new BCryptPasswordEncoder();
 	}
 	
@@ -68,7 +78,7 @@ public class BrowserSecurityConfig extends AbstractChannelSecurityConfig {
 	 * @return
 	 */
 	@Bean
-	public PersistentTokenRepository getPersistentTokenRepository() {
+	public PersistentTokenRepository persistentTokenRepository() {
 		JdbcTokenRepositoryImpl tokenRepository = new JdbcTokenRepositoryImpl();
 		tokenRepository.setDataSource(dataSource);
 		// 配置是否在项目启动时创建表
@@ -83,10 +93,12 @@ public class BrowserSecurityConfig extends AbstractChannelSecurityConfig {
 		
 		http.apply(validateCodeSecurityConfig) // 加载校验码配置信息
 			.and()
-				.apply(smsAuthenticationSecurityConfig)  //配置短信登录的的配置
+				.apply(smsAuthenticationSecurityConfig)  // 加载短信登录的的配置
+			.and()
+				.apply(mapleSocialSecurityConfig)  // 加载第三方登录的配置
 			.and()
 				.rememberMe() // 设置rememberMe配置
-					.tokenRepository(getPersistentTokenRepository())
+					.tokenRepository(persistentTokenRepository())
 					.tokenValiditySeconds(securityProperties.getBrowser().getRememberMeSeconds())
 					.userDetailsService(userDetailsService)
 			.and()
@@ -94,7 +106,8 @@ public class BrowserSecurityConfig extends AbstractChannelSecurityConfig {
 				.antMatchers(
 						securityProperties.getBrowser().getLoginPage(), 
 						SecurityConstants.DEFAULT_UNAUTHENTICATION_URL,
-						SecurityConstants.DEFAULT_VALIDATE_CODE_URL_PREFIX + "/*"
+						SecurityConstants.DEFAULT_VALIDATE_CODE_URL_PREFIX + "/*",
+						securityProperties.getBrowser().getSignUpUrl()
 					) // 排除掉哪些请求
 				.permitAll()
 				.anyRequest()
