@@ -107,7 +107,8 @@ public class BrowserSecurityConfig extends AbstractChannelSecurityConfig {
 						securityProperties.getBrowser().getLoginPage(), 
 						SecurityConstants.DEFAULT_UNAUTHENTICATION_URL,
 						SecurityConstants.DEFAULT_VALIDATE_CODE_URL_PREFIX + "/*",
-						securityProperties.getBrowser().getSignUpUrl()
+						securityProperties.getBrowser().getSignUpUrl(),
+						"/hello"
 					) // 排除掉哪些请求
 				.permitAll()
 				.anyRequest()
