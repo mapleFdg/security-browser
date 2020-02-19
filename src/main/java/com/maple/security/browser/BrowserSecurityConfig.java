@@ -77,6 +77,7 @@ public class BrowserSecurityConfig extends AbstractChannelSecurityConfig {
 	/**
 	 * session 失效的处理类
 	 */
+	@Autowired
 	private InvalidSessionStrategy invalidSessionStrategy;
 	
 	@Override

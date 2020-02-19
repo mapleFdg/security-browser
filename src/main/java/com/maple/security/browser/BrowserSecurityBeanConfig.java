@@ -35,6 +35,7 @@ public class BrowserSecurityBeanConfig {
 	/**
 	 * 系统配置类
 	 */
+	@Autowired
 	private SecurityProperties securityProperties;
 
 	/**
@@ -65,7 +66,7 @@ public class BrowserSecurityBeanConfig {
 	 */
 	@Bean
 	@ConditionalOnMissingBean(SessionInformationExpiredStrategy.class)
-	public SessionInformationExpiredStrategy mapleExpiredSessionStrategy() {
+	public SessionInformationExpiredStrategy sessionInformationExpiredStrategy() {
 		return new MapleExpiredSessionStrategy(securityProperties);
 	}
 	
@@ -75,7 +76,7 @@ public class BrowserSecurityBeanConfig {
 	 */
 	@Bean
 	@ConditionalOnMissingBean(InvalidSessionStrategy.class)
-	public InvalidSessionStrategy mapleInvalidSessionStrategy() {
+	public InvalidSessionStrategy invalidSessionStrategy() {
 		return new MapleInvalidSessionStrategy(securityProperties);
 	}
 	
