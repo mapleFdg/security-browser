@@ -3,6 +3,7 @@ package com.maple.security.browser;
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -11,8 +12,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
+import org.springframework.security.web.session.InvalidSessionStrategy;
+import org.springframework.security.web.session.SessionInformationExpiredStrategy;
 import org.springframework.social.security.SpringSocialConfigurer;
 
+import com.maple.security.browser.session.MapleExpiredSessionStrategy;
 import com.maple.security.core.authentication.AbstractChannelSecurityConfig;
 import com.maple.security.core.authentication.mobile.SmsAuthenticationSecurityConfig;
 import com.maple.security.core.properties.SecurityConstants;
@@ -41,10 +45,10 @@ public class BrowserSecurityConfig extends AbstractChannelSecurityConfig {
 	private ValidateCodeSecurityConfig validateCodeSecurityConfig;
 	
 	/**
-	 * 数据源
+	 * remember 的token的存取器
 	 */
 	@Autowired
-	private DataSource dataSource;
+	private PersistentTokenRepository persistentTokenRepository;
 	
 	/**
 	 * 获取用户信息的类
@@ -65,27 +69,16 @@ public class BrowserSecurityConfig extends AbstractChannelSecurityConfig {
 	private SpringSocialConfigurer mapleSocialSecurityConfig;
 	
 	/**
-	 * 声明加密方法
-	 * @return
+	 * session 超出登录数的处理类
 	 */
-	@Bean
-	public PasswordEncoder passwordEncod() {
-		return new BCryptPasswordEncoder();
-	}
+	@Autowired
+	private SessionInformationExpiredStrategy sessionInformationExpiredStrategy;
 	
 	/**
-	 * 声明一个token的存取器
-	 * @return
+	 * session 失效的处理类
 	 */
-	@Bean
-	public PersistentTokenRepository persistentTokenRepository() {
-		JdbcTokenRepositoryImpl tokenRepository = new JdbcTokenRepositoryImpl();
-		tokenRepository.setDataSource(dataSource);
-		// 配置是否在项目启动时创建表
-//		tokenRepository.setCreateTableOnStartup(true);
-		return tokenRepository;
-	}
-
+	private InvalidSessionStrategy invalidSessionStrategy;
+	
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		
@@ -98,9 +91,17 @@ public class BrowserSecurityConfig extends AbstractChannelSecurityConfig {
 				.apply(mapleSocialSecurityConfig)  // 加载第三方登录的配置
 			.and()
 				.rememberMe() // 设置rememberMe配置
-					.tokenRepository(persistentTokenRepository())
+					.tokenRepository(persistentTokenRepository)
 					.tokenValiditySeconds(securityProperties.getBrowser().getRememberMeSeconds())
 					.userDetailsService(userDetailsService)
+			.and()
+				.sessionManagement()  // session相关配置
+					.invalidSessionStrategy(invalidSessionStrategy) // session过期后的处理
+					.maximumSessions(securityProperties.getBrowser().getSession().getMaximumSessions()) // 最大登录数
+					.maxSessionsPreventsLogin(securityProperties.getBrowser().getSession().isMaxSessionsPreventsLogin()) // 达到最大登录数后，是否阻止后面的登录 
+//					.expiredUrl("") // 超出最大登录数跳转的地址
+					.expiredSessionStrategy(sessionInformationExpiredStrategy) //超出最大登录数的处理
+			.and()
 			.and()
 				.authorizeRequests() // 配置拦截的请求
 				.antMatchers(
@@ -108,7 +109,7 @@ public class BrowserSecurityConfig extends AbstractChannelSecurityConfig {
 						SecurityConstants.DEFAULT_UNAUTHENTICATION_URL,
 						SecurityConstants.DEFAULT_VALIDATE_CODE_URL_PREFIX + "/*",
 						securityProperties.getBrowser().getSignUpUrl(),
-						"/hello"
+						"/session/invalid"
 					) // 排除掉哪些请求
 				.permitAll()
 				.anyRequest()
