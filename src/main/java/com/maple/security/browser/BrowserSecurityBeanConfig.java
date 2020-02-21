@@ -41,16 +41,6 @@ public class BrowserSecurityBeanConfig {
 	private SecurityProperties securityProperties;
 
 	/**
-	 * 声明加密方法
-	 * 
-	 * @return
-	 */
-	@Bean
-	public PasswordEncoder passwordEncod() {
-		return new BCryptPasswordEncoder();
-	}
-
-	/**
 	 * 声明一个token的存取器
 	 * 
 	 * @return

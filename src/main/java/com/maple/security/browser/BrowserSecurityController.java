@@ -20,9 +20,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.maple.security.browser.support.SimpleResponse;
 import com.maple.security.core.properties.SecurityConstants;
 import com.maple.security.core.properties.SecurityProperties;
+import com.maple.security.core.support.SimpleResponse;
 
 @RestController
 public class BrowserSecurityController {

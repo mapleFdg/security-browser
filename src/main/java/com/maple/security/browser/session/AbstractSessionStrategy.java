@@ -15,8 +15,8 @@ import org.springframework.security.web.util.UrlUtils;
 import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.maple.security.browser.support.SimpleResponse;
 import com.maple.security.core.properties.SecurityProperties;
+import com.maple.security.core.support.SimpleResponse;
 
 public class AbstractSessionStrategy {
  
