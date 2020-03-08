@@ -20,6 +20,7 @@ import org.springframework.social.security.SpringSocialConfigurer;
 import com.maple.security.browser.session.MapleExpiredSessionStrategy;
 import com.maple.security.core.authentication.AbstractChannelSecurityConfig;
 import com.maple.security.core.authentication.mobile.SmsAuthenticationSecurityConfig;
+import com.maple.security.core.authorize.AuthorizeConfigManager;
 import com.maple.security.core.properties.SecurityConstants;
 import com.maple.security.core.properties.SecurityProperties;
 import com.maple.security.core.validate.code.ValidateCodeSecurityConfig;
@@ -87,6 +88,9 @@ public class BrowserSecurityConfig extends AbstractChannelSecurityConfig {
 	@Autowired
 	private LogoutSuccessHandler logoutSuccessHandler;
 	
+	@Autowired
+	private AuthorizeConfigManager authorizeConfigManager;
+	
 	
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
@@ -118,21 +122,12 @@ public class BrowserSecurityConfig extends AbstractChannelSecurityConfig {
 					.logoutSuccessHandler(logoutSuccessHandler)  // 退出的处理
 					.deleteCookies("JSESSIONID") // 指定需要删除的cookies的key
 			.and()
-				.authorizeRequests() // 配置拦截的请求
-				.antMatchers(
-						securityProperties.getBrowser().getLoginPage(), 
-						SecurityConstants.DEFAULT_UNAUTHENTICATION_URL,
-						SecurityConstants.DEFAULT_VALIDATE_CODE_URL_PREFIX + "/*",
-						securityProperties.getBrowser().getSignUpUrl(),
-						//securityProperties.getBrowser().getSignOutUrl(),
-						securityProperties.getBrowser().getSession().getSessionInvalidUrl()
-					) // 排除掉哪些请求
-				.permitAll()
-				.anyRequest()
-				.authenticated()
-			.and()
 				.csrf() // csrf防护
 				.disable();
+		
+		// 权限相关的配置
+		authorizeConfigManager.config(http.authorizeRequests());
+		
 	}
 
 }
