@@ -7,11 +7,15 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.security.web.session.InvalidSessionStrategy;
-import org.springframework.security.web.session.SessionInformationExpiredEvent;
-import org.springframework.security.web.session.SessionInformationExpiredStrategy;
 
 import com.maple.security.core.properties.SecurityProperties;
 
+/**
+ * 默认的session失效处理策略
+ * 
+ * @author hzc
+ *
+ */
 public class MapleInvalidSessionStrategy extends AbstractSessionStrategy implements InvalidSessionStrategy {
 
 	public MapleInvalidSessionStrategy(SecurityProperties securityProperties) {

@@ -10,6 +10,12 @@ import org.springframework.security.web.session.SessionInformationExpiredStrateg
 
 import com.maple.security.core.properties.SecurityProperties;
 
+/**
+ * 并发登录导致session失效时，默认的处理策略
+ * 
+ * @author hzc
+ *
+ */
 public class MapleExpiredSessionStrategy extends AbstractSessionStrategy implements SessionInformationExpiredStrategy{
 
 	public MapleExpiredSessionStrategy(SecurityProperties securityProperties) {

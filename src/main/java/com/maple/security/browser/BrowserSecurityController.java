@@ -15,17 +15,28 @@ import org.springframework.security.web.RedirectStrategy;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.security.web.savedrequest.SavedRequest;
+import org.springframework.social.connect.Connection;
+import org.springframework.social.connect.web.ProviderSignInUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.request.ServletWebRequest;
 
 import com.maple.security.core.properties.SecurityConstants;
 import com.maple.security.core.properties.SecurityProperties;
+import com.maple.security.core.social.SocialController;
+import com.maple.security.core.social.support.SocialUserInfo;
 import com.maple.security.core.support.SimpleResponse;
 
+/**
+ * 浏览器环境下与安全相关的服务
+ * 
+ * @author hzc
+ *
+ */
 @RestController
-public class BrowserSecurityController {
+public class BrowserSecurityController extends SocialController {
 
 	private Logger log = LoggerFactory.getLogger(BrowserSecurityController.class);
 
@@ -35,7 +46,17 @@ public class BrowserSecurityController {
 
 	@Autowired
 	private SecurityProperties securityProperties;
+	@Autowired
+	private ProviderSignInUtils providerSignInUtils;
 
+	/**
+	 * 当需要身份认证时，跳转到这里
+	 * 
+	 * @param request
+	 * @param response
+	 * @return
+	 * @throws IOException
+	 */
 	@RequestMapping(SecurityConstants.DEFAULT_UNAUTHENTICATION_URL)
 	@ResponseStatus(HttpStatus.UNAUTHORIZED)
 	public SimpleResponse requireAuthentication(HttpServletRequest request, HttpServletResponse response)
@@ -65,13 +86,24 @@ public class BrowserSecurityController {
 		}
 		return null;
 	}
-	
+
+	/**
+	 * 用户第一次社交登录时，会引导用户进行用户注册或绑定，此服务用于在注册或绑定页面获取社交网站用户信息
+	 * 
+	 * @param request
+	 * @return
+	 */
+	@GetMapping(SecurityConstants.DEFAULT_SOCIAL_USER_INFO_URL)
+	public SocialUserInfo getSocialUserInfo(HttpServletRequest request) {
+		Connection<?> connection = providerSignInUtils.getConnectionFromSession(new ServletWebRequest(request));
+		return buildSocialUserInfo(connection);
+	}
+
 	@GetMapping("/session/invalid")
 	@ResponseStatus(code = HttpStatus.UNAUTHORIZED)
 	public SimpleResponse sessionInvalid() {
 		String message = "session失效";
 		return new SimpleResponse(message);
 	}
-	
 
 }

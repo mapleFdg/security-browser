@@ -18,6 +18,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.maple.security.core.properties.SecurityProperties;
 import com.maple.security.core.support.SimpleResponse;
 
+/**
+ * 抽象的session失效处理器
+ * 
+ * @author hzc
+ *
+ */
 public class AbstractSessionStrategy {
  
 	private final static Logger log = LoggerFactory.getLogger(AbstractSessionStrategy.class);
@@ -48,7 +54,7 @@ public class AbstractSessionStrategy {
 		String invalidUrl = securityProperties.getBrowser().getSession().getSessionInvalidUrl();
 		// 判断url是否合法，否则抛出异常
 		Assert.isTrue(UrlUtils.isValidRedirectUrl(invalidUrl),"url 必须以“/”或者“http(s)”开头");
-		Assert.isTrue(StringUtils.endsWithIgnoreCase(invalidUrl, ".html"), "url 唏嘘以“.html”结尾");
+		Assert.isTrue(StringUtils.endsWithIgnoreCase(invalidUrl, ".html"), "url 必须以“.html”结尾");
 		this.securityProperties = securityProperties;
 		this.destinationUrl = invalidUrl;
 	}

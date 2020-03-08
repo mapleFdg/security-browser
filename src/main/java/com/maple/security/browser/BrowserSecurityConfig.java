@@ -1,27 +1,24 @@
 package com.maple.security.browser;
 
-import javax.sql.DataSource;
+import java.util.Set;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
-import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
 import org.springframework.security.web.session.InvalidSessionStrategy;
 import org.springframework.security.web.session.SessionInformationExpiredStrategy;
 import org.springframework.social.security.SpringSocialConfigurer;
 
-import com.maple.security.browser.session.MapleExpiredSessionStrategy;
-import com.maple.security.core.authentication.AbstractChannelSecurityConfig;
+import com.maple.security.core.authentication.FormAuthenticationConfig;
 import com.maple.security.core.authentication.mobile.SmsAuthenticationSecurityConfig;
 import com.maple.security.core.authorize.AuthorizeConfigManager;
-import com.maple.security.core.properties.SecurityConstants;
 import com.maple.security.core.properties.SecurityProperties;
 import com.maple.security.core.validate.code.ValidateCodeSecurityConfig;
 
@@ -32,7 +29,7 @@ import com.maple.security.core.validate.code.ValidateCodeSecurityConfig;
  *
  */
 @Configuration
-public class BrowserSecurityConfig extends AbstractChannelSecurityConfig {
+public class BrowserSecurityConfig extends WebSecurityConfigurerAdapter{
 	
 	/**
 	 * 系统配置
@@ -71,6 +68,12 @@ public class BrowserSecurityConfig extends AbstractChannelSecurityConfig {
 	private SpringSocialConfigurer mapleSocialSecurityConfig;
 	
 	/**
+	 * 表单登录配置
+	 */
+	@Autowired
+	private FormAuthenticationConfig formAuthenticationConfig;
+	
+	/**
 	 * session 超出登录数的处理类
 	 */
 	@Autowired
@@ -91,11 +94,22 @@ public class BrowserSecurityConfig extends AbstractChannelSecurityConfig {
 	@Autowired
 	private AuthorizeConfigManager authorizeConfigManager;
 	
+	@Autowired
+	private Set<BrowserSecurityConfigCallback> configCallbacks;
+	
+	@Override
+	public void configure(WebSecurity web) throws Exception {
+		web.ignoring().antMatchers(HttpMethod.GET, "/**/*.css", "/**/*.js", "/**/*.png", "/**/*.gif", "/**/*.jpg");
+	}
 	
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		
-		applyPasswordAuthenticationConfig(http);
+		if(CollectionUtils.isNotEmpty(configCallbacks)) {
+			configCallbacks.forEach(callback -> callback.config(http));
+		}
+		
+		formAuthenticationConfig.configure(http);
 		
 		http.apply(validateCodeSecurityConfig) // 加载校验码配置信息
 			.and()
