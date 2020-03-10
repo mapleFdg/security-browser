@@ -35,7 +35,7 @@ public class MapleAuthenticationFailureHandler extends SimpleUrlAuthenticationFa
 
 	@Autowired
 	private ObjectMapper objectMapper;
-
+	
 	@Override
 	public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
 			AuthenticationException exception) throws IOException, ServletException {

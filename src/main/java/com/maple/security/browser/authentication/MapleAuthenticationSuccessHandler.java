@@ -59,10 +59,10 @@ public class MapleAuthenticationSuccessHandler extends SimpleUrlAuthenticationSu
 		} else {
 			// 如果设置了imooc.security.browser.singInSuccessUrl，总是跳到设置的地址上
 			// 如果没设置，则尝试跳转到登录之前访问的地址上，如果登录前访问地址为空，则跳到网站根路径上
-			if (StringUtils.isNotBlank(securityProperties.getBrowser().getSingInSuccessUrl())) {
+			if (StringUtils.isNotBlank(securityProperties.getBrowser().getSignInSuccessUrl())) {
 				requestCache.removeRequest(request, response);
 				setAlwaysUseDefaultTargetUrl(true);
-				setDefaultTargetUrl(securityProperties.getBrowser().getSingInSuccessUrl());
+				setDefaultTargetUrl(securityProperties.getBrowser().getSignInSuccessUrl());
 			}
 			super.onAuthenticationSuccess(request, response, authentication);
 		}
