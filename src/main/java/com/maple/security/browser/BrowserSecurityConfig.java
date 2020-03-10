@@ -94,7 +94,7 @@ public class BrowserSecurityConfig extends WebSecurityConfigurerAdapter{
 	@Autowired
 	private AuthorizeConfigManager authorizeConfigManager;
 	
-	@Autowired
+	@Autowired(required = false)
 	private Set<BrowserSecurityConfigCallback> configCallbacks;
 	
 	@Override

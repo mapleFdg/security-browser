@@ -49,8 +49,9 @@ public class MapleLogoutSuccessHandler implements LogoutSuccessHandler {
 	@Override
 	public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
 			throws IOException, ServletException {
-		log.info("退出登录成功");
-
+		log.warn("默认的退出处理逻辑，若有需求，可实现接口LogoutSuccessHandler以覆盖默认配置");
+		
+		log.info(authentication.getName() + " --> 退出登录成功");
 		String signOutUrl = securityProperties.getBrowser().getSignOutUrl();
 
 		if (StringUtils.isNotBlank(signOutUrl)) {

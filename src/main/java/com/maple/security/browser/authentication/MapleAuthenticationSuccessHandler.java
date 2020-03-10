@@ -41,7 +41,9 @@ public class MapleAuthenticationSuccessHandler extends SimpleUrlAuthenticationSu
 	@Override
 	public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
 			Authentication authentication) throws IOException, ServletException {
-		log.info("登录成功，登录用户：" + JSONObject.toJSONString(authentication, true));
+		//log.warn("默认的退出处理逻辑，若有需求，可实现接口SimpleUrlAuthenticationSuccessHandler以覆盖默认配置");
+		
+		log.info(authentication.getName() + " --> 登录成功"  );
 
 		if (LoginResponseType.JSON.equals(securityProperties.getBrowser().getLoginType())) {
 			String targetUrl = determineTargetUrl(request, response);
